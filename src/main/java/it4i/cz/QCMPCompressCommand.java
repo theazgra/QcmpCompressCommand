@@ -9,6 +9,7 @@
 package it4i.cz;
 
 import azgracompress.U16;
+import io.scif.services.DatasetIOService;
 import net.imagej.Dataset;
 import net.imagej.ImageJ;
 import net.imagej.ops.OpService;
@@ -24,6 +25,7 @@ import org.scijava.plugin.Plugin;
 import org.scijava.ui.UIService;
 
 import java.io.File;
+import java.io.IOException;
 import java.sql.SQLTransactionRollbackException;
 import java.util.ArrayList;
 import java.util.List;
@@ -69,17 +71,35 @@ public class QCMPCompressCommand<T extends RealType<T>> implements Command {
     @Parameter(label = "Codebook type", choices = {Individual, MiddlePlane, Global})
     private String codebookType = Individual;
 
-    @Parameter(label = "Codebook cache", required = false)
-    private File codebookCacheDirectory;
+    @Parameter(label = "Codebook cache", required = false, validater = "/d")
+    private String codebookCacheDirectory;
 
+    /**
+     * Injected parameters.
+     */
     @Parameter
     private LogService logger;
+
+    @Parameter
+    private DatasetIOService datasetIOService;
+
+    @Parameter
+    private UIService uiService;
+
 
     @Override
     public void run() {
         logger.info("Input file " + inputImageFile.getPath());
         logger.info("Quantization method: " + quantizationMethod + "(" + codebookType + " codebook, L = " + codebookSize + ")");
         logger.info(String.format("Vector dimensions [%dx%d]", vectorWidth, vectorHeight));
+
+        try {
+            final Dataset loadedDataset = datasetIOService.open(inputImageFile.getAbsolutePath());
+
+            uiService.show(loadedDataset);
+        } catch (IOException e) {
+            logger.error(String.format("Failed to load an image from: '%s'", inputImageFile.getAbsolutePath()), e);
+        }
 
         //        final Img<T> image = (Img<T>) currentData.getImgPlus();
         //        //
