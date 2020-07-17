@@ -9,9 +9,11 @@
 package it4i.cz;
 
 import azgracompress.U16;
+import ij.plugin.filter.PlugInFilter;
 import io.scif.services.DatasetIOService;
 import net.imagej.Dataset;
 import net.imagej.ImageJ;
+import net.imagej.axis.AxisType;
 import net.imagej.ops.OpService;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
@@ -40,7 +42,10 @@ import java.util.List;
  * and replace the {@link `run`} method implementation with your own logic.
  * </p>
  */
-@Plugin(type = Command.class, menuPath = "Plugins>QCMP Compression")
+
+// TODO(Moravec): Place plugin inside Plugins menu.
+//@Plugin(type = Command.class, menuPath = "Plugins>Compression>QCMP Compression")
+@Plugin(type = Command.class, menuPath = "Compression>QCMP Compression")
 public class QCMPCompressCommand<T extends RealType<T>> implements Command {
 
     // Different quantization methods.
@@ -96,7 +101,16 @@ public class QCMPCompressCommand<T extends RealType<T>> implements Command {
         try {
             final Dataset loadedDataset = datasetIOService.open(inputImageFile.getAbsolutePath());
 
+            logger.info("Source: " + loadedDataset.getSource());
+            logger.info("Width: " + loadedDataset.getWidth());
+            logger.info("Height: " + loadedDataset.getHeight());
+            logger.info("Depth: " + loadedDataset.getDepth());
+            logger.info("TypeLabelShort: " + loadedDataset.getTypeLabelShort());
+            logger.info("TypeLabelLong: " + loadedDataset.getTypeLabelLong());
+            logger.info("Frames: " + loadedDataset.getFrames());
+
             uiService.show(loadedDataset);
+
         } catch (IOException e) {
             logger.error(String.format("Failed to load an image from: '%s'", inputImageFile.getAbsolutePath()), e);
         }
@@ -119,6 +133,7 @@ public class QCMPCompressCommand<T extends RealType<T>> implements Command {
         //            uiService.show(elem);
         //        }
     }
+
 
     /**
      * This main function serves for development purposes.
