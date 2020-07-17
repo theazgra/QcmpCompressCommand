@@ -8,29 +8,19 @@
 
 package it4i.cz;
 
-import azgracompress.U16;
-import ij.plugin.filter.PlugInFilter;
-import io.scif.services.DatasetIOService;
-import net.imagej.Dataset;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.WindowManager;
+import ij.process.ShortProcessor;
 import net.imagej.ImageJ;
-import net.imagej.axis.AxisType;
-import net.imagej.ops.OpService;
-import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.img.Img;
 import net.imglib2.type.numeric.RealType;
-import org.apache.log4j.pattern.LogEvent;
-import org.scijava.ItemVisibility;
 import org.scijava.command.Command;
 import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.ui.UIService;
 
-import java.io.File;
-import java.io.IOException;
-import java.sql.SQLTransactionRollbackException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 
 /**
  * This example illustrates how to create an ImageJ {@link Command} plugin.
@@ -48,36 +38,36 @@ import java.util.List;
 @Plugin(type = Command.class, menuPath = "Compression>QCMP Compression")
 public class QCMPCompressCommand<T extends RealType<T>> implements Command {
 
-    // Different quantization methods.
-    private static final String SQ = "Scalar";
-    private static final String VQ1D = "Row Vector";
-    private static final String VQ2D = "Matrix Vector";
-
-    // Different codebook types.
-    private static final String Individual = "Individual";
-    private static final String MiddlePlane = "Middle plane";
-    private static final String Global = "Global";
-
-    @Parameter(label = "Input image or dataset")
-    private File inputImageFile;
-
-    @Parameter(label = "Quantization method", choices = {SQ, VQ1D, VQ2D})
-    private String quantizationMethod = VQ2D;
-
-    @Parameter(label = "Quantization codebook size", choices = {"4", "8", "16", "32", "64", "128", "256"})
-    private String codebookSize = "256";
-
-    @Parameter(label = "Vector width", min = "1", max = "50")
-    private int vectorWidth = 3;
-
-    @Parameter(label = "Vector height", min = "1", max = "50", required = false)
-    private int vectorHeight = 3;
-
-    @Parameter(label = "Codebook type", choices = {Individual, MiddlePlane, Global})
-    private String codebookType = Individual;
-
-    @Parameter(label = "Codebook cache", required = false, validater = "/d")
-    private String codebookCacheDirectory;
+    //    // Different quantization methods.
+    //    private static final String SQ = "Scalar";
+    //    private static final String VQ1D = "Row Vector";
+    //    private static final String VQ2D = "Matrix Vector";
+    //
+    //    // Different codebook types.
+    //    private static final String Individual = "Individual";
+    //    private static final String MiddlePlane = "Middle plane";
+    //    private static final String Global = "Global";
+    //
+    //    @Parameter(label = "Input image or dataset")
+    //    private File inputImageFile;
+    //
+    //    @Parameter(label = "Quantization method", choices = {SQ, VQ1D, VQ2D})
+    //    private String quantizationMethod = VQ2D;
+    //
+    //    @Parameter(label = "Quantization codebook size", choices = {"4", "8", "16", "32", "64", "128", "256"})
+    //    private String codebookSize = "256";
+    //
+    //    @Parameter(label = "Vector width", min = "1", max = "50")
+    //    private int vectorWidth = 3;
+    //
+    //    @Parameter(label = "Vector height", min = "1", max = "50", required = false)
+    //    private int vectorHeight = 3;
+    //
+    //    @Parameter(label = "Codebook type", choices = {Individual, MiddlePlane, Global})
+    //    private String codebookType = Individual;
+    //
+    //    @Parameter(label = "Codebook cache", required = false, validater = "/d")
+    //    private String codebookCacheDirectory;
 
     /**
      * Injected parameters.
@@ -86,34 +76,74 @@ public class QCMPCompressCommand<T extends RealType<T>> implements Command {
     private LogService logger;
 
     @Parameter
-    private DatasetIOService datasetIOService;
-
-    @Parameter
     private UIService uiService;
 
 
     @Override
     public void run() {
-        logger.info("Input file " + inputImageFile.getPath());
-        logger.info("Quantization method: " + quantizationMethod + "(" + codebookType + " codebook, L = " + codebookSize + ")");
-        logger.info(String.format("Vector dimensions [%dx%d]", vectorWidth, vectorHeight));
+        ImagePlus workImage = null;
+        {
+            final ImagePlus currentImage = WindowManager.getCurrentImage();
+            if (currentImage == null) { // There is no current image, we ask user to open the image.
+                IJ.showMessage("No image is opened.");
+                return;
+            }
 
-        try {
-            final Dataset loadedDataset = datasetIOService.open(inputImageFile.getAbsolutePath());
-
-            logger.info("Source: " + loadedDataset.getSource());
-            logger.info("Width: " + loadedDataset.getWidth());
-            logger.info("Height: " + loadedDataset.getHeight());
-            logger.info("Depth: " + loadedDataset.getDepth());
-            logger.info("TypeLabelShort: " + loadedDataset.getTypeLabelShort());
-            logger.info("TypeLabelLong: " + loadedDataset.getTypeLabelLong());
-            logger.info("Frames: " + loadedDataset.getFrames());
-
-            uiService.show(loadedDataset);
-
-        } catch (IOException e) {
-            logger.error(String.format("Failed to load an image from: '%s'", inputImageFile.getAbsolutePath()), e);
+            if (currentImage.getType() != ImagePlus.GRAY16) {
+                IJ.showMessage("Only 16 bit images are currently supported.");
+                return;
+            }
+            logger.info("Current image file: " + currentImage.getFileInfo().fileName);
+            workImage = currentImage.duplicate();
         }
+        final int width = workImage.getWidth();
+        final int height = workImage.getHeight();
+        final int sliceCount = workImage.getNSlices();
+        logger.info("Width: " + width);
+        logger.info("Height: " + height);
+        logger.info("ZCount: " + sliceCount);
+        logger.info("BitDepth: " + workImage.getBitDepth());
+        logger.info("BPP: " + workImage.getBytesPerPixel());
+
+        final ShortProcessor imageProcessor = (ShortProcessor) workImage.getProcessor();
+        final short[] pixelData = (short[]) imageProcessor.getPixels();
+
+        //IJ.showMessage("pixelData.length=" + Integer.toString(pixelData.length));
+
+        Arrays.fill(pixelData, (short) 0xffff);
+
+
+        workImage.setTitle("Working copy of the original image.");
+        workImage.show();
+
+
+        //        GenericDialog dialog = new GenericDialog("My command-plugin title");
+        //        dialog.addStringField("Name", "Your name here");
+        //        dialog.showDialog();
+
+
+        //        logger.info("Input file " + inputImageFile.getPath());
+        //        logger.info("Quantization method: " + quantizationMethod + "(" + codebookType + " codebook, L = " +
+        //        codebookSize + ")");
+        //        logger.info(String.format("Vector dimensions [%dx%d]", vectorWidth, vectorHeight));
+        //
+        //        try {
+        //            final Dataset loadedDataset = datasetIOService.open(inputImageFile.getAbsolutePath());
+        //
+        //            logger.info("Source: " + loadedDataset.getSource());
+        //            logger.info("Width: " + loadedDataset.getWidth());
+        //            logger.info("Height: " + loadedDataset.getHeight());
+        //            logger.info("Depth: " + loadedDataset.getDepth());
+        //            logger.info("TypeLabelShort: " + loadedDataset.getTypeLabelShort());
+        //            logger.info("TypeLabelLong: " + loadedDataset.getTypeLabelLong());
+        //            logger.info("Frames: " + loadedDataset.getFrames());
+        //
+        //            uiService.show(loadedDataset);
+        //
+        //        } catch (IOException e) {
+        //            logger.error(String.format("Failed to load an image from: '%s'", inputImageFile.getAbsolutePath
+        //            ()), e);
+        //        }
 
         //        final Img<T> image = (Img<T>) currentData.getImgPlus();
         //        //
@@ -133,7 +163,6 @@ public class QCMPCompressCommand<T extends RealType<T>> implements Command {
         //            uiService.show(elem);
         //        }
     }
-
 
     /**
      * This main function serves for development purposes.
