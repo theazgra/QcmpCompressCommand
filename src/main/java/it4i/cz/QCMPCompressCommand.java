@@ -8,12 +8,17 @@
 
 package it4i.cz;
 
+import azgracompress.data.V3i;
+import azgracompress.quantization.scalar.ScalarQuantizer;
+import azgracompress.quantization.vector.VQCodebook;
+import azgracompress.quantization.vector.VectorQuantizer;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.WindowManager;
 import ij.process.ShortProcessor;
 import net.imagej.ImageJ;
 import net.imglib2.type.numeric.RealType;
+import org.apache.commons.io.FilenameUtils;
 import org.scijava.command.Command;
 import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
@@ -81,6 +86,7 @@ public class QCMPCompressCommand<T extends RealType<T>> implements Command {
 
     @Override
     public void run() {
+
         ImagePlus workImage = null;
         {
             final ImagePlus currentImage = WindowManager.getCurrentImage();
@@ -111,7 +117,6 @@ public class QCMPCompressCommand<T extends RealType<T>> implements Command {
         //IJ.showMessage("pixelData.length=" + Integer.toString(pixelData.length));
 
         Arrays.fill(pixelData, (short) 0xffff);
-
 
         workImage.setTitle("Working copy of the original image.");
         workImage.show();

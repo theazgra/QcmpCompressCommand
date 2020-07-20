@@ -3,3 +3,4 @@
 .vscode/
 target/
 *.iml
+src/main/java/META-INF/
