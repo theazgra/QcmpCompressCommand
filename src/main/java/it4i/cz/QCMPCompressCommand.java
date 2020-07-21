@@ -8,24 +8,17 @@
 
 package it4i.cz;
 
-import azgracompress.data.V3i;
-import azgracompress.quantization.scalar.ScalarQuantizer;
-import azgracompress.quantization.vector.VQCodebook;
-import azgracompress.quantization.vector.VectorQuantizer;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.WindowManager;
 import ij.process.ShortProcessor;
+import it4i.cz.ui.CompressionDialog;
 import net.imagej.ImageJ;
-import net.imglib2.type.numeric.RealType;
-import org.apache.commons.io.FilenameUtils;
 import org.scijava.command.Command;
 import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.ui.UIService;
-
-import java.util.Arrays;
 
 /**
  * This example illustrates how to create an ImageJ {@link Command} plugin.
@@ -41,36 +34,18 @@ import java.util.Arrays;
 // TODO(Moravec): Place plugin inside Plugins menu.
 //@Plugin(type = Command.class, menuPath = "Plugins>Compression>QCMP Compression")
 @Plugin(type = Command.class, menuPath = "Compression>QCMP Compression")
-public class QCMPCompressCommand<T extends RealType<T>> implements Command {
+public class QCMPCompressCommand implements Command {
 
-    //    // Different quantization methods.
-    //    private static final String SQ = "Scalar";
-    //    private static final String VQ1D = "Row Vector";
-    //    private static final String VQ2D = "Matrix Vector";
-    //
-    //    // Different codebook types.
-    //    private static final String Individual = "Individual";
-    //    private static final String MiddlePlane = "Middle plane";
-    //    private static final String Global = "Global";
-    //
-    //    @Parameter(label = "Input image or dataset")
-    //    private File inputImageFile;
-    //
-    //    @Parameter(label = "Quantization method", choices = {SQ, VQ1D, VQ2D})
-    //    private String quantizationMethod = VQ2D;
-    //
-    //    @Parameter(label = "Quantization codebook size", choices = {"4", "8", "16", "32", "64", "128", "256"})
-    //    private String codebookSize = "256";
-    //
-    //    @Parameter(label = "Vector width", min = "1", max = "50")
-    //    private int vectorWidth = 3;
-    //
-    //    @Parameter(label = "Vector height", min = "1", max = "50", required = false)
-    //    private int vectorHeight = 3;
-    //
-    //    @Parameter(label = "Codebook type", choices = {Individual, MiddlePlane, Global})
-    //    private String codebookType = Individual;
-    //
+    // Different quantization methods.
+    private static final String SQ = "Scalar";
+    private static final String VQ1D = "Row Vector";
+    private static final String VQ2D = "Matrix Vector";
+
+    // Different codebook types.
+    private static final String Individual = "Individual";
+    private static final String MiddlePlane = "Middle plane";
+    private static final String Global = "Global";
+
     //    @Parameter(label = "Codebook cache", required = false, validater = "/d")
     //    private String codebookCacheDirectory;
 
@@ -86,43 +61,61 @@ public class QCMPCompressCommand<T extends RealType<T>> implements Command {
 
     @Override
     public void run() {
-
-        ImagePlus workImage = null;
-        {
-            final ImagePlus currentImage = WindowManager.getCurrentImage();
-            if (currentImage == null) { // There is no current image, we ask user to open the image.
-                IJ.showMessage("No image is opened.");
-                return;
-            }
-
-            if (currentImage.getType() != ImagePlus.GRAY16) {
-                IJ.showMessage("Only 16 bit images are currently supported.");
-                return;
-            }
-            logger.info("Current image file: " + currentImage.getFileInfo().fileName);
-            workImage = currentImage.duplicate();
+        CompressionDialog dialog = new CompressionDialog("QCMP compression");
+        if (dialog.exec() || true)
+            return;
+        ImagePlus currentImage = WindowManager.getCurrentImage();
+        if (currentImage == null) { // There is no current image, we ask user to open the image.
+            IJ.showMessage("No image is opened.");
+            return;
         }
-        final int width = workImage.getWidth();
-        final int height = workImage.getHeight();
-        final int sliceCount = workImage.getNSlices();
+
+        if (currentImage.getType() != ImagePlus.GRAY16) {
+            IJ.showMessage("Only 16 bit images are currently supported.");
+            return;
+        }
+        logger.info("Current image file: " + currentImage.getFileInfo().fileName);
+        currentImage = currentImage.duplicate();
+
+        final int width = currentImage.getWidth();
+        final int height = currentImage.getHeight();
+        final int sliceCount = currentImage.getNSlices();
         logger.info("Width: " + width);
         logger.info("Height: " + height);
         logger.info("ZCount: " + sliceCount);
-        logger.info("BitDepth: " + workImage.getBitDepth());
-        logger.info("BPP: " + workImage.getBytesPerPixel());
+        logger.info("BitDepth: " + currentImage.getBitDepth());
+        logger.info("BPP: " + currentImage.getBytesPerPixel());
 
-        final ShortProcessor imageProcessor = (ShortProcessor) workImage.getProcessor();
+
+        final ShortProcessor imageProcessor = (ShortProcessor) currentImage.getProcessor();
         final short[] pixelData = (short[]) imageProcessor.getPixels();
-
-        //IJ.showMessage("pixelData.length=" + Integer.toString(pixelData.length));
-
-        Arrays.fill(pixelData, (short) 0xffff);
-
-        workImage.setTitle("Working copy of the original image.");
-        workImage.show();
 
 
         //        GenericDialog dialog = new GenericDialog("My command-plugin title");
+        //        dialog.addChoice("Quantization method", new String[]{SQ, VQ1D, VQ2D}, VQ2D);
+        //        dialog.addChoice("Codebook type", new String[]{Individual, MiddlePlane, Global}, Global);
+        //        dialog.addChoice("Quantization codebook size", new String[]{"4", "8", "16", "32", "64", "128",
+        //        "256"}, "128");
+        //        dialog.addNumericField("Vector width", 3, 0);
+        //        dialog.addNumericField("Vector height", 3, 0);
+        //        dialog.addStringField("Codebook cache folder", "");
+        //
+        //
+        //        Button btn = new Button("my button");
+        //        btn.addActionListener(new ActionListener() {
+        //            @Override
+        //            public void actionPerformed(ActionEvent actionEvent) {
+        //                System.out.println("Button was clicked, source --> " + actionEvent.getSource());
+        //            }
+        //        });
+        //
+        //        Panel cacheFolderContainer = new Panel();
+        //        cacheFolderContainer.add(new TextField());
+        //        cacheFolderContainer.add(btn);
+        //        cacheFolderContainer.setLayout(new FlowLayout());
+        //        dialog.addPanel(cacheFolderContainer);
+        //        dialog.showDialog();
+
         //        dialog.addStringField("Name", "Your name here");
         //        dialog.showDialog();
 
@@ -168,6 +161,7 @@ public class QCMPCompressCommand<T extends RealType<T>> implements Command {
         //            uiService.show(elem);
         //        }
     }
+
 
     /**
      * This main function serves for development purposes.
