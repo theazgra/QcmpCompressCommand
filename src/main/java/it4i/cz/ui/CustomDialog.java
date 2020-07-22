@@ -1,11 +1,16 @@
 package it4i.cz.ui;
 
+import azgracompress.fileformat.FileExtensions;
+import ij.IJ;
 import ij.gui.GenericDialog;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
+import java.io.File;
 import java.util.HashMap;
-import java.util.concurrent.Callable;
+import java.util.HashSet;
 
 public class CustomDialog extends GenericDialog {
 
@@ -17,15 +22,54 @@ public class CustomDialog extends GenericDialog {
     private int currentCol = 0;
 
     private IModelValidator<CustomDialog> modelValidator;
-    private HashMap<Integer, Component> componentModel;
+    private final HashMap<Integer, Component> componentModel;
+    private final HashSet<Component> invalidComponents;
+    private final Label warningLabel;
+    private int warningKeySource = 0;
 
     public CustomDialog(final String dialogTitle) {
         super(dialogTitle);
         componentModel = new HashMap<>();
+        invalidComponents = new HashSet<>();
         this.panel = new Panel();
         this.panel.setLayout(new GridBagLayout());
         this.constraints = new GridBagConstraints();
         this.constraints.fill = GridBagConstraints.BOTH;
+
+        this.warningLabel = new Label("");
+        warningLabel.setForeground(Color.RED);
+        addGridComponent(warningLabel, currentRow, 0);
+        advanceToNextRow();
+    }
+
+    private void setWarning(final Component invalidComponent, final String warningMessage) {
+        warningLabel.setText(warningMessage);
+        invalidComponents.add(invalidComponent);
+
+        for (final Button button : getButtons()) {
+            if (button.getLabel() == null) continue;
+            if (button.getLabel().trim().equals("OK")) {
+                button.setEnabled(false);
+                break;
+            }
+        }
+        invalidate();
+    }
+
+    private void resetWarning(final Component invalidComponent) {
+        warningLabel.setText("");
+
+        invalidComponents.remove(invalidComponent);
+        if (invalidComponents.size() > 0)
+            return;
+
+        for (final Button button : getButtons()) {
+            if (button.getLabel() == null) continue;
+            if (button.getLabel().trim().equals("OK")) {
+                button.setEnabled(true);
+                break;
+            }
+        }
     }
 
     private void addGridComponent(final Component component, int row, int col) {
@@ -57,6 +101,7 @@ public class CustomDialog extends GenericDialog {
         showDialog();
         if (modelValidator != null) {
             if (!modelValidator.validateModel(this)) {
+                IJ.showMessage("Dialog model failed to validate");
                 return false;
             }
         }
@@ -94,10 +139,26 @@ public class CustomDialog extends GenericDialog {
         return addIntegerField(labelText, defaultValue, NO_KEY);
     }
 
+    private boolean isInteger(final String str) {
+        try {
+            int tmp = Integer.parseInt(str);
+            return true;
+        } catch (NumberFormatException x) {
+            return false;
+        }
+    }
+
     public CustomDialog addIntegerField(final String labelText, final int defaultValue, final int componentKey) {
         Label label = new Label(labelText);
         TextField intInput = new TextField(Integer.toString(defaultValue));
-        // TODO(Moravec): Add number check.
+
+        intInput.addTextListener(textAction -> {
+            if (!isInteger(intInput.getText())) {
+                setWarning(intInput, "Invalid integer value for '" + labelText + "'");
+            } else {
+                resetWarning(intInput);
+            }
+        });
         addGridComponent(label, currentRow, currentCol++);
         addGridComponent(intInput, currentRow, currentCol);
         advanceToNextRow();
@@ -150,19 +211,29 @@ public class CustomDialog extends GenericDialog {
         return this;
     }
 
-    public CustomDialog addSaveFileField(final String labelText) {
-        return addSaveFileField(labelText, NO_KEY);
+    public CustomDialog addSaveFileField(final String labelText, final String extension) {
+        return addSaveFileField(labelText, extension, NO_KEY);
     }
 
-    public CustomDialog addSaveFileField(final String labelText, final int componentKey) {
+    public CustomDialog addSaveFileField(final String labelText, final String extension, final int componentKey) {
         Label label = new Label(labelText);
         TextField filePathInput = new TextField();
         Button saveFileDialogBtn = new Button("Select file");
 
         saveFileDialogBtn.addActionListener(actionEvent -> {
             final JFileChooser saveFileDialog = getSingleFileDialog(labelText);
+
+            if (extension != null) {
+                FileNameExtensionFilter extFilter = new FileNameExtensionFilter("QCMP files", extension);
+                saveFileDialog.setFileFilter(extFilter);
+            }
+
             if (saveFileDialog.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
-                filePathInput.setText(saveFileDialog.getSelectedFile().getAbsolutePath());
+                String absPath = saveFileDialog.getSelectedFile().getAbsolutePath();
+                if (!absPath.endsWith(FileExtensions.QCMP)) {
+                    absPath += ("." + FileExtensions.QCMP);
+                }
+                filePathInput.setText(absPath);
             }
         });
 
@@ -179,4 +250,13 @@ public class CustomDialog extends GenericDialog {
     }
 
 
+    public CustomDialog addInfoField(final String labelText, final String info) {
+        Label label = new Label(labelText);
+        Label infoLabel = new Label(info);
+        infoLabel.setForeground(Color.BLUE);
+        addGridComponent(label, currentRow, currentCol++);
+        addGridComponent(infoLabel, currentRow, currentCol++);
+        advanceToNextRow();
+        return this;
+    }
 }
