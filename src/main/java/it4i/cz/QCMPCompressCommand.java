@@ -26,16 +26,6 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.ui.UIService;
 
-/**
- * This example illustrates how to create an ImageJ {@link Command} plugin.
- * <p>
- * The code here is a simple Gaussian blur using ImageJ Ops.
- * </p>
- * <p>
- * You should replace the parameter fields with your own inputs and outputs,
- * and replace the {@link `run`} method implementation with your own logic.
- * </p>
- */
 
 // TODO(Moravec): Place plugin inside Plugins menu.
 //@Plugin(type = Command.class, menuPath = "Plugins>Compression>QCMP Compression")
