@@ -112,6 +112,9 @@ public class CompressionDialog {
                 .addOpenFolderField("Codebook cache folder", KEY_CODEBOOK_CACHE_FOLDER)
                 .addSaveFileField("Compressed file", "qcmp", KEY_OUTPUT_FILE);
 
+        // Set default QCMP cache folder.
+        ((TextField) dialog.getComponent(KEY_CODEBOOK_CACHE_FOLDER)).setText(QcmpCacheHelper.getQcmpCacheDirectory());
+
         dialog.setValidator(model -> {
             try {
                 final int vecWidth = Integer.parseInt(((TextField) model.getComponent(KEY_VECTOR_DIM)).getText());
@@ -119,7 +122,8 @@ public class CompressionDialog {
                 IJ.showMessage("Invalid vector dimensions.");
                 return false;
             }
-
+            // TODO(Moravec): When the output file is missing, just compress/decompress the file in memory and show result.
+            //                At first we can just save the result to temporary file.
             return !((TextField) model.getComponent(KEY_OUTPUT_FILE)).getText().isEmpty();
         });
     }
