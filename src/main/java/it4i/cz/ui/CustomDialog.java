@@ -14,6 +14,7 @@ import java.util.HashSet;
 
 public class CustomDialog extends GenericDialog {
 
+    private static final String JFILE_CHOOSER_DEFAULT_DIR = "D:\\";
     private final int NO_KEY = -1;
     private final Panel panel;
     private final GridBagConstraints constraints;
@@ -171,14 +172,23 @@ public class CustomDialog extends GenericDialog {
     }
 
     private JFileChooser getOpenDirectoryDialog(final String title) {
-        JFileChooser directoryChooser = new JFileChooser(title);
+        JFileChooser directoryChooser = new JFileChooser(JFILE_CHOOSER_DEFAULT_DIR);
+        directoryChooser.setDialogTitle(title);
         directoryChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         return directoryChooser;
     }
 
-    private JFileChooser getSingleFileDialog(final String title) {
-        JFileChooser fileChooser = new JFileChooser(title);
+    private JFileChooser getSingleFileDialog(final String title, final String extension) {
+        JFileChooser fileChooser = new JFileChooser(JFILE_CHOOSER_DEFAULT_DIR);
+        fileChooser.setDialogTitle(title);
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+
+        if (extension != null) {
+            FileNameExtensionFilter extFilter = new FileNameExtensionFilter(extension, extension);
+            fileChooser.setFileFilter(extFilter);
+            fileChooser.setAcceptAllFileFilterUsed(false);
+        }
+
         return fileChooser;
     }
 
@@ -221,12 +231,7 @@ public class CustomDialog extends GenericDialog {
         Button saveFileDialogBtn = new Button("Select file");
 
         saveFileDialogBtn.addActionListener(actionEvent -> {
-            final JFileChooser saveFileDialog = getSingleFileDialog(labelText);
-
-            if (extension != null) {
-                FileNameExtensionFilter extFilter = new FileNameExtensionFilter("QCMP files", extension);
-                saveFileDialog.setFileFilter(extFilter);
-            }
+            final JFileChooser saveFileDialog = getSingleFileDialog(labelText, extension);
 
             if (saveFileDialog.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
                 String absPath = saveFileDialog.getSelectedFile().getAbsolutePath();
