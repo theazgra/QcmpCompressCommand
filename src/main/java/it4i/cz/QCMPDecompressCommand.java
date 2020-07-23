@@ -7,9 +7,8 @@ import azgracompress.fileformat.FileExtensions;
 import azgracompress.io.FileInputData;
 import ij.IJ;
 import ij.ImagePlus;
-import ij.WindowManager;
+import ij.ImageStack;
 import ij.gui.NewImage;
-import ij.measure.Calibration;
 import org.scijava.command.Command;
 import org.scijava.plugin.Plugin;
 
@@ -22,8 +21,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 public class QCMPDecompressCommand implements Command {
     @Override
     public void run() {
-        IJ.showStatus("Choosing file to decompress");
-        JFileChooser fileOpenDialog = new JFileChooser();
+        JFileChooser fileOpenDialog = new JFileChooser("D:\\");
         fileOpenDialog.setFileSelectionMode(JFileChooser.FILES_ONLY);
         fileOpenDialog.setAcceptAllFileFilterUsed(false);
         fileOpenDialog.setFileFilter(new FileNameExtensionFilter("QCMP files", FileExtensions.QCMP));
@@ -42,13 +40,18 @@ public class QCMPDecompressCommand implements Command {
                 return;
             }
 
+
             final ImagePlus img = NewImage.createShortImage("Decompressed image",
                     decompressedDataset.getPlaneDimensions().getX(),
                     decompressedDataset.getPlaneDimensions().getY(),
                     decompressedDataset.getPlaneCount(),
                     ImagePlus.GRAY16);
-            img.getProcessor().setPixels(decompressedDataset.getData());
-            img.updateAndDraw();
+
+            final ImageStack imageStack = img.getImageStack();
+            for (int planeIndex = 0; planeIndex < decompressedDataset.getPlaneCount(); planeIndex++) {
+                imageStack.setPixels(decompressedDataset.getPlaneData(planeIndex), planeIndex + 1);
+            }
+
             img.show();
         }
     }
