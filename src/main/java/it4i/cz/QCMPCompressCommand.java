@@ -85,7 +85,12 @@ public class QCMPCompressCommand implements Command {
                 pixelBuffers[planeIndex] = planePixelBuffer;
             }
 
-            options.setInputDataInfo(new BufferInputData(pixelBuffers, datasetDims, InputData.PixelType.Gray16));
+
+            options.setInputDataInfo(new BufferInputData(pixelBuffers,
+                    datasetDims,
+                    InputData.PixelType.Gray16,
+                    currentImage.getOriginalFileInfo().fileName));
+
             ImageCompressor imageCompressor = new ImageCompressor(options);
             if (imageCompressor.compress()) {
                 IJ.showMessage("Compressed file is saved at: " + options.getOutputFilePath());
