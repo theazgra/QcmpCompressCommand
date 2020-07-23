@@ -15,6 +15,7 @@ import azgracompress.io.BufferInputData;
 import azgracompress.io.InputData;
 import ij.IJ;
 import ij.ImagePlus;
+import ij.ImageStack;
 import ij.WindowManager;
 import ij.process.ShortProcessor;
 import it4i.cz.ui.CompressionDialog;
@@ -24,7 +25,8 @@ import org.scijava.command.Command;
 import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-import org.scijava.ui.UIService;
+
+import javax.management.openmbean.OpenMBeanConstructorInfo;
 
 
 // TODO(Moravec): Place plugin inside Plugins menu.
@@ -51,52 +53,46 @@ public class QCMPCompressCommand implements Command {
     @Parameter
     private LogService logger;
 
-    @Parameter
-    private UIService uiService;
-
 
     @Override
     public void run() {
-        ImagePlus currentImage = WindowManager.getCurrentImage();
+        final ImagePlus currentImage = WindowManager.getCurrentImage();
         if (currentImage == null) {
             IJ.showMessage("No image is opened.");
             return;
         }
-
         if (currentImage.getType() != ImagePlus.GRAY16) {
             IJ.showMessage("Only 16 bit images are currently supported.");
             return;
         }
 
-        logger.info("Current image file: " + currentImage.getFileInfo().fileName);
-
-        final V3i imageDims = new V3i(currentImage.getWidth(), currentImage.getHeight(), currentImage.getNSlices());
+        final int stackSize = currentImage.getImageStackSize();
+        final ImageStack imageStack = currentImage.getImageStack();
+        assert (currentImage.getNSlices() == stackSize);
+        final V3i datasetDims = new V3i(currentImage.getWidth(), currentImage.getHeight(), currentImage.getImageStackSize());
 
         final ImageInfo imageInfo = new ImageInfo(currentImage.getTitle(),
-                imageDims.toString(),
+                datasetDims.toString(),
                 Integer.toString(currentImage.getBitDepth()));
         CompressionDialog dialog = new CompressionDialog("QCMP compression", imageInfo);
         if (dialog.exec()) {
 
             final CompressionOptions options = dialog.getChosenOptions();
-            final ShortProcessor imageProcessor = (ShortProcessor) currentImage.getProcessor();
-            options.setInputDataInfo(new BufferInputData(imageProcessor.getPixels(), imageDims, InputData.PixelType.Gray16));
+            final Object[] pixelBuffers = new Object[stackSize];
+            for (int planeIndex = 0; planeIndex < stackSize; planeIndex++) {
+                final Object planePixelBuffer = imageStack.getPixels(planeIndex + 1);
+                assert (planePixelBuffer != null);
+                pixelBuffers[planeIndex] = planePixelBuffer;
+            }
 
+            options.setInputDataInfo(new BufferInputData(pixelBuffers, datasetDims, InputData.PixelType.Gray16));
             ImageCompressor imageCompressor = new ImageCompressor(options);
             if (imageCompressor.compress()) {
                 IJ.showMessage("Compressed file is saved at: " + options.getOutputFilePath());
             } else {
                 IJ.showMessage("Failed to compress the image. Check error log.");
             }
-
-            System.out.println("options are prepared.");
         }
-
-
-        //        // display result
-        //        for (RandomAccessibleInterval<T> elem : results) {
-        //            uiService.show(elem);
-        //        }
     }
 
 
@@ -112,20 +108,5 @@ public class QCMPCompressCommand implements Command {
         // create the ImageJ application context with all available services
         final ImageJ ij = new ImageJ();
         ij.ui().showUI();
-
-
-        // ask the user for a file to open
-        //        final File file = ij.ui().chooseFile(null, "open");
-        //
-        //        if (file != null) {
-        //            // load the dataset
-        //            final Dataset dataset = ij.scifio().datasetIO().open(file.getPath());
-        //
-        //            // show the image
-        //            ij.ui().show(dataset);
-        //
-        //            // invoke the plugin
-        //            ij.command().run(QCMPCompressCommand.class, true);
-        //        }
     }
 }
