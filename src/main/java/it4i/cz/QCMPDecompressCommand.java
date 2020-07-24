@@ -10,6 +10,8 @@ import ij.ImagePlus;
 import ij.ImageStack;
 import ij.gui.NewImage;
 import org.scijava.command.Command;
+import org.scijava.log.LogService;
+import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 import javax.swing.*;
@@ -19,6 +21,10 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 //@Plugin(type = Command.class, menuPath = "Plugins>Compression>QCMP Decompression")
 @Plugin(type = Command.class, menuPath = "Compression>QCMP Decompression")
 public class QCMPDecompressCommand implements Command {
+
+    @Parameter
+    LogService logger;
+
     @Override
     public void run() {
         JFileChooser fileOpenDialog = new JFileChooser("D:\\");
@@ -34,6 +40,17 @@ public class QCMPDecompressCommand implements Command {
 
             IJ.showStatus("Decompressing the file...");
             ImageDecompressor imageDecompressor = new ImageDecompressor(decompressionOptions);
+
+//            imageDecompressor.setStatusListener(statusMessage -> {
+//                IJ.showStatus(statusMessage);
+//                logger.info(statusMessage);
+//            });
+
+            imageDecompressor.setProgressListener((message, index, finalIndex) -> {
+                logger.info(message);
+                IJ.showProgress(index, finalIndex);
+            });
+
             final ImageU16Dataset decompressedDataset = imageDecompressor.decompressInMemory();
             if (decompressedDataset == null) {
                 IJ.showMessage("Error decompressing the file.");
