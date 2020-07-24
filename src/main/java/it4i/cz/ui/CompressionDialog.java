@@ -15,6 +15,7 @@ public class CompressionDialog {
     private final int KEY_VECTOR_DIM = 4;
     private final int KEY_CODEBOOK_CACHE_FOLDER = 5;
     private final int KEY_OUTPUT_FILE = 6;
+    private final int KEY_WORKER_COUNT = 7;
 
     // Different quantization methods.
     public static final String SQ = "Scalar";
@@ -100,17 +101,25 @@ public class CompressionDialog {
         final String selectedOF = ((TextField) dialog.getComponent(KEY_OUTPUT_FILE)).getText();
         options.setOutputFilePath(selectedOF);
 
+        int workerCount = Integer.parseInt(((TextField) dialog.getComponent(KEY_WORKER_COUNT)).getText());
+        final int availableProcessors = Runtime.getRuntime().availableProcessors();
+        if (workerCount < 1) workerCount = 1;
+        else if (workerCount > availableProcessors) workerCount = availableProcessors;
+        options.setWorkerCount(workerCount);
+
         return options;
     }
 
     private void buildDialog() {
+        final int defaultThreadCount = Runtime.getRuntime().availableProcessors() / 2;
         dialog.addComboBox("Quantization method", new String[]{SQ, VQ1D, VQ2D}, VQ2D, KEY_QUANTIZATION_TYPE)
                 .addComboBox("Codebook type", new String[]{Individual, MiddlePlane, Global}, Global, KEY_CODEBOOK_TYPE)
                 .addComboBox("Quantization codebook size",
                         new String[]{"4", "8", "16", "32", "64", "128", "256"}, "128", KEY_CODEBOOK_SIZE)
                 .addIntegerField("Vector dimension", 3, KEY_VECTOR_DIM)
                 .addOpenFolderField("Codebook cache folder", KEY_CODEBOOK_CACHE_FOLDER)
-                .addSaveFileField("Compressed file", "qcmp", KEY_OUTPUT_FILE);
+                .addSaveFileField("Compressed file", "qcmp", KEY_OUTPUT_FILE)
+                .addIntegerField("Thread count", defaultThreadCount, KEY_WORKER_COUNT);
 
         // Set default QCMP cache folder.
         ((TextField) dialog.getComponent(KEY_CODEBOOK_CACHE_FOLDER)).setText(QcmpCacheHelper.getQcmpCacheDirectory());
@@ -122,9 +131,7 @@ public class CompressionDialog {
                 IJ.showMessage("Invalid vector dimensions.");
                 return false;
             }
-            // TODO(Moravec): When the output file is missing, just compress/decompress the file in memory and show result.
-            //                At first we can just save the result to temporary file.
-            return !((TextField) model.getComponent(KEY_OUTPUT_FILE)).getText().isEmpty();
+            return true;
         });
     }
 }
