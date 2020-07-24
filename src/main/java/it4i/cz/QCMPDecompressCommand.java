@@ -41,15 +41,9 @@ public class QCMPDecompressCommand implements Command {
             IJ.showStatus("Decompressing the file...");
             ImageDecompressor imageDecompressor = new ImageDecompressor(decompressionOptions);
 
-//            imageDecompressor.setStatusListener(statusMessage -> {
-//                IJ.showStatus(statusMessage);
-//                logger.info(statusMessage);
-//            });
-
-            imageDecompressor.setProgressListener((message, index, finalIndex) -> {
-                logger.info(message);
-                IJ.showProgress(index, finalIndex);
-            });
+            imageDecompressor.setStatusListener(statusMessage -> DefaultListeners.handleStatusReport(logger, statusMessage));
+            imageDecompressor.setProgressListener((message, index, finalIndex) ->
+                    DefaultListeners.handleProgressReport(logger, message, index, finalIndex));
 
             final ImageU16Dataset decompressedDataset = imageDecompressor.decompressInMemory();
             if (decompressedDataset == null) {

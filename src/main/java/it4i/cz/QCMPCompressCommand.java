@@ -92,6 +92,11 @@ public class QCMPCompressCommand implements Command {
                     currentImage.getOriginalFileInfo().fileName));
 
             ImageCompressor imageCompressor = new ImageCompressor(options);
+
+            imageCompressor.setStatusListener(statusMessage -> DefaultListeners.handleStatusReport(logger, statusMessage));
+            imageCompressor.setProgressListener((message, index, finalIndex) ->
+                    DefaultListeners.handleProgressReport(logger, message, index, finalIndex));
+
             if (imageCompressor.compress()) {
                 IJ.showMessage("Compressed file is saved at: " + options.getOutputFilePath());
             } else {
