@@ -5,10 +5,8 @@ import ij.IJ;
 import ij.gui.GenericDialog;
 
 import javax.swing.*;
-import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
-import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
 
