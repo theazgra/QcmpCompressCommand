@@ -56,6 +56,9 @@ public class QCMPCompressCommand implements Command {
 
     @Override
     public void run() {
+        boolean runDecompressOnTmpFile = false;
+        String tmpFile = null;
+
         final ImagePlus currentImage = WindowManager.getCurrentImage();
         if (currentImage == null) {
             IJ.showMessage("No image is opened.");
@@ -85,6 +88,15 @@ public class QCMPCompressCommand implements Command {
                 pixelBuffers[planeIndex] = planePixelBuffer;
             }
 
+            if (options.getOutputFilePath() == null || options.getOutputFilePath().isEmpty()) {
+                tmpFile = getTmpFile();
+                if (tmpFile == null) {
+                    IJ.showMessage("No output file was defined, unable to create temporary file.");
+                    return;
+                }
+                options.setOutputFilePath(tmpFile);
+                runDecompressOnTmpFile = true;
+            }
 
             options.setInputDataInfo(new BufferInputData(pixelBuffers,
                     datasetDims,
@@ -98,10 +110,24 @@ public class QCMPCompressCommand implements Command {
                     DefaultListeners.handleProgressReport(logger, message, index, finalIndex));
 
             if (imageCompressor.compress()) {
-                IJ.showMessage("Compressed file is saved at: " + options.getOutputFilePath());
+                if (!runDecompressOnTmpFile)
+                    IJ.showMessage("Compressed file is saved at: " + options.getOutputFilePath());
             } else {
                 IJ.showMessage("Failed to compress the image. Check error log.");
             }
+
+            if (runDecompressOnTmpFile) {
+                // Decompress and show the file!
+                new QCMPDecompressCommand().openQCMPFile(tmpFile);
+            }
+        }
+    }
+
+    private String getTmpFile() {
+        try {
+            return File.createTempFile("qcmp_temp_file", FileExtensions.QCMP).getAbsolutePath();
+        } catch (IOException e) {
+            return null;
         }
     }
 
