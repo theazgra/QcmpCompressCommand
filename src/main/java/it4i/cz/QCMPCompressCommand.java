@@ -11,27 +11,27 @@ package it4i.cz;
 import azgracompress.compression.CompressionOptions;
 import azgracompress.compression.ImageCompressor;
 import azgracompress.data.V3i;
+import azgracompress.fileformat.FileExtensions;
 import azgracompress.io.BufferInputData;
 import azgracompress.io.InputData;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.WindowManager;
-import ij.process.ShortProcessor;
 import it4i.cz.ui.CompressionDialog;
 import it4i.cz.ui.ImageInfo;
 import net.imagej.ImageJ;
+import org.scijava.Priority;
 import org.scijava.command.Command;
 import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
-import javax.management.openmbean.OpenMBeanConstructorInfo;
+import java.io.File;
+import java.io.IOException;
 
 
-// TODO(Moravec): Place plugin inside Plugins menu.
-//@Plugin(type = Command.class, menuPath = "Plugins>Compression>QCMP Compression")
-@Plugin(type = Command.class, menuPath = "Compression>QCMP Compression")
+@Plugin(type = Command.class, menuPath = "Compression>QCMP>Compress", priority = Priority.HIGH_PRIORITY)
 public class QCMPCompressCommand implements Command {
 
     // Different quantization methods.

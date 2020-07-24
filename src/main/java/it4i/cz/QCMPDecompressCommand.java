@@ -9,6 +9,7 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.gui.NewImage;
+import org.scijava.Priority;
 import org.scijava.command.Command;
 import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
@@ -17,13 +18,12 @@ import org.scijava.plugin.Plugin;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-// TODO(Moravec): Place plugin inside Plugins menu.
-//@Plugin(type = Command.class, menuPath = "Plugins>Compression>QCMP Decompression")
-@Plugin(type = Command.class, menuPath = "Compression>QCMP Decompression")
+@Plugin(type = Command.class, menuPath = "Compression>QCMP>Decompress", priority = Priority.HIGH_PRIORITY)
 public class QCMPDecompressCommand implements Command {
 
     @Parameter
     LogService logger;
+
 
     @Override
     public void run() {
