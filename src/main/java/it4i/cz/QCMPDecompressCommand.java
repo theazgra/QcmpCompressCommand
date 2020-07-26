@@ -24,6 +24,12 @@ public class QCMPDecompressCommand implements Command {
     @Parameter
     LogService logger;
 
+    public QCMPDecompressCommand() {
+    }
+
+    public QCMPDecompressCommand(LogService logger) {
+        this.logger = logger;
+    }
 
     @Override
     public void run() {

@@ -118,7 +118,7 @@ public class QCMPCompressCommand implements Command {
 
             if (runDecompressOnTmpFile) {
                 // Decompress and show the file!
-                new QCMPDecompressCommand().openQCMPFile(tmpFile);
+                new QCMPDecompressCommand(logger).openQCMPFile(tmpFile);
             }
         }
     }
