@@ -105,8 +105,8 @@ public class QCMPCompressCommand implements Command {
 
             ImageCompressor imageCompressor = new ImageCompressor(options);
 
-            imageCompressor.setStatusListener(statusMessage -> DefaultListeners.handleStatusReport(logger, statusMessage));
-            imageCompressor.setProgressListener((message, index, finalIndex) ->
+            imageCompressor.addStatusListener(statusMessage -> DefaultListeners.handleStatusReport(logger, statusMessage));
+            imageCompressor.addProgressListener((message, index, finalIndex) ->
                     DefaultListeners.handleProgressReport(logger, message, index, finalIndex));
 
             if (imageCompressor.compress()) {
