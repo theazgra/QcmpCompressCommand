@@ -46,7 +46,8 @@ public class CustomDialog extends GenericDialog {
         invalidComponents.add(invalidComponent);
 
         for (final Button button : getButtons()) {
-            if (button.getLabel() == null) continue;
+            if (button.getLabel() == null)
+                continue;
             if (button.getLabel().trim().equals("OK")) {
                 button.setEnabled(false);
                 break;
@@ -63,7 +64,8 @@ public class CustomDialog extends GenericDialog {
             return;
 
         for (final Button button : getButtons()) {
-            if (button.getLabel() == null) continue;
+            if (button.getLabel() == null)
+                continue;
             if (button.getLabel().trim().equals("OK")) {
                 button.setEnabled(true);
                 break;
@@ -145,6 +147,21 @@ public class CustomDialog extends GenericDialog {
         } catch (NumberFormatException x) {
             return false;
         }
+    }
+
+    public CustomDialog addCheckBox(final String label, final boolean defaultValue) {
+        return addCheckBox(label, defaultValue, NO_KEY);
+    }
+
+    public CustomDialog addCheckBox(final String labelText, final boolean defaultValue, final int componentKey) {
+        Checkbox checkbox = new Checkbox(labelText, defaultValue);
+        addGridComponent(checkbox, currentRow, currentCol);
+        advanceToNextRow();
+
+        if (componentKey != NO_KEY) {
+            componentModel.put(componentKey, checkbox);
+        }
+        return this;
     }
 
     public CustomDialog addIntegerField(final String labelText, final int defaultValue, final int componentKey) {
