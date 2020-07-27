@@ -72,11 +72,13 @@ public class QCMPCompressCommand implements Command {
         final int stackSize = currentImage.getImageStackSize();
         final ImageStack imageStack = currentImage.getImageStack();
         assert (currentImage.getNSlices() == stackSize);
-        final V3i datasetDims = new V3i(currentImage.getWidth(), currentImage.getHeight(), currentImage.getImageStackSize());
+        final V3i datasetDims = new V3i(currentImage.getWidth(),
+                                        currentImage.getHeight(),
+                                        currentImage.getImageStackSize());
 
         final ImageInfo imageInfo = new ImageInfo(currentImage.getTitle(),
-                datasetDims.toString(),
-                Integer.toString(currentImage.getBitDepth()));
+                                                  datasetDims.toString(),
+                                                  Integer.toString(currentImage.getBitDepth()));
         CompressionDialog dialog = new CompressionDialog("QCMP compression", imageInfo);
         if (dialog.exec()) {
 
@@ -99,15 +101,21 @@ public class QCMPCompressCommand implements Command {
             }
 
             options.setInputDataInfo(new BufferInputData(pixelBuffers,
-                    datasetDims,
-                    InputData.PixelType.Gray16,
-                    currentImage.getOriginalFileInfo().fileName));
+                                                         datasetDims,
+                                                         InputData.PixelType.Gray16,
+                                                         currentImage.getOriginalFileInfo().fileName));
 
             ImageCompressor imageCompressor = new ImageCompressor(options);
 
-            imageCompressor.addStatusListener(statusMessage -> DefaultListeners.handleStatusReport(logger, statusMessage));
-            imageCompressor.addProgressListener((message, index, finalIndex) ->
-                    DefaultListeners.handleProgressReport(logger, message, index, finalIndex));
+            if (options.isVerbose()) {
+                imageCompressor.addStatusListener(statusMessage ->
+                                                          DefaultListeners.handleStatusReport(logger, statusMessage));
+
+                imageCompressor.addProgressListener((message, index, finalIndex) ->
+                                                            DefaultListeners.handleProgressReport(logger, message,
+                                                                                                  index, finalIndex));
+            }
+
 
             if (imageCompressor.compress()) {
                 if (!runDecompressOnTmpFile)
