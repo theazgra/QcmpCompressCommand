@@ -16,6 +16,7 @@ public class CompressionDialog {
     private final int KEY_CODEBOOK_CACHE_FOLDER = 5;
     private final int KEY_OUTPUT_FILE = 6;
     private final int KEY_WORKER_COUNT = 7;
+    private final int KEY_VERBOSE = 8;
 
     // Different quantization methods.
     public static final String SQ = "Scalar";
@@ -103,9 +104,13 @@ public class CompressionDialog {
 
         int workerCount = Integer.parseInt(((TextField) dialog.getComponent(KEY_WORKER_COUNT)).getText());
         final int availableProcessors = Runtime.getRuntime().availableProcessors();
-        if (workerCount < 1) workerCount = 1;
-        else if (workerCount > availableProcessors) workerCount = availableProcessors;
+        if (workerCount < 1)
+            workerCount = 1;
+        else if (workerCount > availableProcessors)
+            workerCount = availableProcessors;
         options.setWorkerCount(workerCount);
+
+        options.setVerbose(((Checkbox) dialog.getComponent(KEY_VERBOSE)).getState());
 
         return options;
     }
@@ -115,11 +120,12 @@ public class CompressionDialog {
         dialog.addComboBox("Quantization method", new String[]{SQ, VQ1D, VQ2D}, VQ2D, KEY_QUANTIZATION_TYPE)
                 .addComboBox("Codebook type", new String[]{Individual, MiddlePlane, Global}, Global, KEY_CODEBOOK_TYPE)
                 .addComboBox("Quantization codebook size",
-                        new String[]{"4", "8", "16", "32", "64", "128", "256"}, "128", KEY_CODEBOOK_SIZE)
+                             new String[]{"4", "8", "16", "32", "64", "128", "256"}, "128", KEY_CODEBOOK_SIZE)
                 .addIntegerField("Vector dimension", 3, KEY_VECTOR_DIM)
                 .addOpenFolderField("Codebook cache folder", KEY_CODEBOOK_CACHE_FOLDER)
                 .addSaveFileField("Compressed file", "qcmp", KEY_OUTPUT_FILE)
-                .addIntegerField("Thread count", defaultThreadCount, KEY_WORKER_COUNT);
+                .addIntegerField("Thread count", defaultThreadCount, KEY_WORKER_COUNT)
+                .addCheckBox("Enable logging", false, KEY_VERBOSE);
 
         // Set default QCMP cache folder.
         ((TextField) dialog.getComponent(KEY_CODEBOOK_CACHE_FOLDER)).setText(QcmpCacheHelper.getQcmpCacheDirectory());
