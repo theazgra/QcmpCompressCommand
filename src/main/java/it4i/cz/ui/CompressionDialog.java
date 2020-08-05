@@ -1,7 +1,7 @@
 package it4i.cz.ui;
 
 import azgracompress.compression.CompressionOptions;
-import azgracompress.data.V2i;
+import azgracompress.data.V3i;
 import azgracompress.fileformat.QuantizationType;
 import ij.IJ;
 
@@ -22,6 +22,7 @@ public class CompressionDialog {
     public static final String SQ = "Scalar";
     public static final String VQ1D = "Row Vector";
     public static final String VQ2D = "Matrix Vector";
+    public static final String VQ3D = "Voxel Vector (Global codebook only)";
 
     // Different codebook types.
     public static final String Individual = "Individual";
@@ -65,23 +66,30 @@ public class CompressionDialog {
             case VQ2D:
                 options.setQuantizationType(QuantizationType.Vector2D);
                 break;
+            case VQ3D:
+                options.setQuantizationType(QuantizationType.Vector3D);
+                break;
             default:
                 options.setQuantizationType(QuantizationType.Invalid);
                 break;
         }
-
-        final String selectedCBT = ((Choice) dialog.getComponent(KEY_CODEBOOK_TYPE)).getSelectedItem();
-        switch (selectedCBT) {
-            case Individual:
-                options.setCodebookType(CompressionOptions.CodebookType.Individual);
-                break;
-            case MiddlePlane:
-                options.setCodebookType(CompressionOptions.CodebookType.MiddlePlane);
-                break;
-            case Global:
-                options.setCodebookType(CompressionOptions.CodebookType.Global);
-                break;
+        if (options.getQuantizationType() == QuantizationType.Vector3D) {
+            options.setCodebookType(CompressionOptions.CodebookType.Global);
+        } else {
+            final String selectedCBT = ((Choice) dialog.getComponent(KEY_CODEBOOK_TYPE)).getSelectedItem();
+            switch (selectedCBT) {
+                case Individual:
+                    options.setCodebookType(CompressionOptions.CodebookType.Individual);
+                    break;
+                case MiddlePlane:
+                    options.setCodebookType(CompressionOptions.CodebookType.MiddlePlane);
+                    break;
+                case Global:
+                    options.setCodebookType(CompressionOptions.CodebookType.Global);
+                    break;
+            }
         }
+
 
         final String selectedCBS = ((Choice) dialog.getComponent(KEY_CODEBOOK_SIZE)).getSelectedItem();
         options.setBitsPerCodebookIndex((int) (Math.log(Integer.parseInt(selectedCBS)) / Math.log(2)));
@@ -90,10 +98,10 @@ public class CompressionDialog {
         final int vecDim = Integer.parseInt(selectedVD);
         switch (options.getQuantizationType()) {
             case Vector1D:
-                options.setVectorDimension(new V2i(vecDim, 1));
+                options.setQuantizationVector(new V3i(vecDim, 1, 1));
                 break;
             case Vector2D:
-                options.setVectorDimension(new V2i(vecDim, vecDim));
+                options.setQuantizationVector(new V3i(vecDim, vecDim, 1));
         }
 
         final String selectedCacheFolder = ((TextField) dialog.getComponent(KEY_CODEBOOK_CACHE_FOLDER)).getText();
@@ -117,7 +125,7 @@ public class CompressionDialog {
 
     private void buildDialog() {
         final int defaultThreadCount = Runtime.getRuntime().availableProcessors() / 2;
-        dialog.addComboBox("Quantization method", new String[]{SQ, VQ1D, VQ2D}, VQ2D, KEY_QUANTIZATION_TYPE)
+        dialog.addComboBox("Quantization method", new String[]{SQ, VQ1D, VQ2D, VQ3D}, VQ2D, KEY_QUANTIZATION_TYPE)
                 .addComboBox("Codebook type", new String[]{Individual, MiddlePlane, Global}, Global, KEY_CODEBOOK_TYPE)
                 .addComboBox("Quantization codebook size",
                              new String[]{"4", "8", "16", "32", "64", "128", "256"}, "128", KEY_CODEBOOK_SIZE)

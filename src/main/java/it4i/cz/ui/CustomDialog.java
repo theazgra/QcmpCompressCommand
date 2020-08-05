@@ -7,6 +7,7 @@ import ij.gui.GenericDialog;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
+import java.awt.event.TextListener;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -136,10 +137,6 @@ public class CustomDialog extends GenericDialog {
     }
 
 
-    public CustomDialog addIntegerField(final String labelText, final int defaultValue) {
-        return addIntegerField(labelText, defaultValue, NO_KEY);
-    }
-
     private boolean isInteger(final String str) {
         try {
             int tmp = Integer.parseInt(str);
@@ -164,7 +161,25 @@ public class CustomDialog extends GenericDialog {
         return this;
     }
 
-    public CustomDialog addIntegerField(final String labelText, final int defaultValue, final int componentKey) {
+    public int getIntegerValue(final int componentKey) {
+        return Integer.parseInt(((TextField) getComponent(componentKey)).getText());
+    }
+
+    public CustomDialog addIntegerField(final String labelText, final int defaultValue) {
+        return addIntegerField(labelText, defaultValue, NO_KEY, null);
+    }
+
+    public CustomDialog addIntegerField(final String labelText,
+                                        final int defaultValue,
+                                        final int componentKey) {
+        return addIntegerField(labelText, defaultValue, componentKey, null);
+    }
+
+    public CustomDialog addIntegerField(final String labelText,
+                                        final int defaultValue,
+                                        final int componentKey,
+                                        TextListener customTextListener) {
+
         Label label = new Label(labelText);
         TextField intInput = new TextField(Integer.toString(defaultValue));
 
@@ -175,6 +190,11 @@ public class CustomDialog extends GenericDialog {
                 resetWarning(intInput);
             }
         });
+
+        if (customTextListener != null) {
+            intInput.addTextListener(customTextListener);
+        }
+
         addGridComponent(label, currentRow, currentCol++);
         addGridComponent(intInput, currentRow, currentCol);
         advanceToNextRow();

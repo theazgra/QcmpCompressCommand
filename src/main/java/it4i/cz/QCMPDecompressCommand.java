@@ -6,9 +6,6 @@ import azgracompress.data.ImageU16Dataset;
 import azgracompress.fileformat.FileExtensions;
 import azgracompress.io.FileInputData;
 import ij.IJ;
-import ij.ImagePlus;
-import ij.ImageStack;
-import ij.gui.NewImage;
 import org.scijava.Priority;
 import org.scijava.command.Command;
 import org.scijava.log.LogService;
@@ -53,7 +50,7 @@ public class QCMPDecompressCommand implements Command {
 
         imageDecompressor.addStatusListener(statusMessage -> DefaultListeners.handleStatusReport(logger, statusMessage));
         imageDecompressor.addProgressListener((message, index, finalIndex) ->
-                DefaultListeners.handleProgressReport(logger, message, index, finalIndex));
+                                                      DefaultListeners.handleProgressReport(logger, message, index, finalIndex));
 
         final ImageU16Dataset decompressedDataset = imageDecompressor.decompressInMemory();
         if (decompressedDataset == null) {
@@ -61,18 +58,18 @@ public class QCMPDecompressCommand implements Command {
             return;
         }
 
-
-        final ImagePlus img = NewImage.createShortImage("Decompressed image",
-                decompressedDataset.getPlaneDimensions().getX(),
-                decompressedDataset.getPlaneDimensions().getY(),
-                decompressedDataset.getPlaneCount(),
-                ImagePlus.GRAY16);
-
-        final ImageStack imageStack = img.getImageStack();
-        for (int planeIndex = 0; planeIndex < decompressedDataset.getPlaneCount(); planeIndex++) {
-            imageStack.setPixels(decompressedDataset.getPlaneData(planeIndex), planeIndex + 1);
-        }
-
-        img.show();
+        ImageStackHelper.displayDataset(decompressedDataset, "Decompressed image dataset");
+        //        final ImagePlus img = NewImage.createShortImage("Decompressed image",
+        //                decompressedDataset.getPlaneDimensions().getX(),
+        //                decompressedDataset.getPlaneDimensions().getY(),
+        //                decompressedDataset.getPlaneCount(),
+        //                ImagePlus.GRAY16);
+        //
+        //        final ImageStack imageStack = img.getImageStack();
+        //        for (int planeIndex = 0; planeIndex < decompressedDataset.getPlaneCount(); planeIndex++) {
+        //            imageStack.setPixels(decompressedDataset.getPlaneData(planeIndex), planeIndex + 1);
+        //        }
+        //
+        //        img.show();
     }
 }

@@ -34,19 +34,6 @@ import java.io.IOException;
 @Plugin(type = Command.class, menuPath = "Compression>QCMP>Compress", priority = Priority.HIGH_PRIORITY)
 public class QCMPCompressCommand implements Command {
 
-    // Different quantization methods.
-    private static final String SQ = "Scalar";
-    private static final String VQ1D = "Row Vector";
-    private static final String VQ2D = "Matrix Vector";
-
-    // Different codebook types.
-    private static final String Individual = "Individual";
-    private static final String MiddlePlane = "Middle plane";
-    private static final String Global = "Global";
-
-    //    @Parameter(label = "Codebook cache", required = false, validater = "/d")
-    //    private String codebookCacheDirectory;
-
     /**
      * Injected parameters.
      */
