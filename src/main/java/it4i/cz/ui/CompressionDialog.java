@@ -102,6 +102,10 @@ public class CompressionDialog {
                 break;
             case Vector2D:
                 options.setQuantizationVector(new V3i(vecDim, vecDim, 1));
+                break;
+            case Vector3D:
+                options.setQuantizationVector(new V3i(vecDim, vecDim, vecDim));
+                break;
         }
 
         final String selectedCacheFolder = ((TextField) dialog.getComponent(KEY_CODEBOOK_CACHE_FOLDER)).getText();
