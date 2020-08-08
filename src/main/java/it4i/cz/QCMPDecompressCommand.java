@@ -14,6 +14,7 @@ import org.scijava.plugin.Plugin;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import java.util.Optional;
 
 @Plugin(type = Command.class, menuPath = "Compression>QCMP>Decompress", priority = Priority.HIGH_PRIORITY)
 public class QCMPDecompressCommand implements Command {
@@ -50,15 +51,15 @@ public class QCMPDecompressCommand implements Command {
 
         imageDecompressor.addStatusListener(statusMessage -> DefaultListeners.handleStatusReport(logger, statusMessage));
         imageDecompressor.addProgressListener((message, index, finalIndex) ->
-                                                      DefaultListeners.handleProgressReport(logger, message, index, finalIndex));
+                DefaultListeners.handleProgressReport(logger, message, index, finalIndex));
 
-        final ImageU16Dataset decompressedDataset = imageDecompressor.decompressInMemory();
-        if (decompressedDataset == null) {
+        final Optional<ImageU16Dataset> maybeDecompressedDataset = imageDecompressor.decompressInMemory();
+        if (!maybeDecompressedDataset.isPresent()) {
             IJ.showMessage("Error decompressing the file.");
             return;
         }
 
-        ImageStackHelper.displayDataset(decompressedDataset, "Decompressed image dataset");
+        ImageStackHelper.displayDataset(maybeDecompressedDataset.get(), "Decompressed image dataset");
         //        final ImagePlus img = NewImage.createShortImage("Decompressed image",
         //                decompressedDataset.getPlaneDimensions().getX(),
         //                decompressedDataset.getPlaneDimensions().getY(),
