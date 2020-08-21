@@ -1,8 +1,7 @@
 package it4i.cz;
 
-import azgracompress.data.ImageU16Dataset;
+import azgracompress.data.V2i;
 import azgracompress.data.V3i;
-import azgracompress.data.Voxel;
 import azgracompress.io.BufferInputData;
 import azgracompress.io.InputData;
 import azgracompress.io.loader.IPlaneLoader;
@@ -63,19 +62,20 @@ public class TestCommand implements Command {
         try {
             Stopwatch s = Stopwatch.startNew();
             loader = PlaneLoaderFactory.getPlaneLoaderForInputFile(bufferInputData);
-            final V3i voxelDims = new V3i(vecDim);
-            logger.info("Voxel dimensions: " + voxelDims);
-            final int[][] voxels = loader.loadVoxels(voxelDims);
+            final V2i blocDim = new V2i(vecDim);
+            logger.info("Vector dimensions: " + blocDim);
+            final int[][] voxels = loader.loadBlocks(blocDim);
             s.stop();
-            IJ.showMessage("Voxel loading time: " + s.getElapsedTimeString());
-            logger.info("Voxel loading time: " + s.getElapsedTimeString());
-            logger.info("continue exec...");
-            s.restart();
-            ImageU16Dataset reconstructedDataset = new Voxel(bufferInputData.getDimensions()).reconstructFromVoxels(voxelDims, voxels);
-            s.stop();
-            IJ.showMessage("Voxel reconstruction time: " + s.getElapsedTimeString());
-
-            ImageStackHelper.displayDataset(reconstructedDataset, "Voxel reconstructed dataset");
+            IJ.showMessage("Block loading time: " + s.getElapsedTimeString());
+            logger.info("Block loading time: " + s.getElapsedTimeString());
+            //            logger.info("continue exec...");
+            //            s.restart();
+            //            ImageU16Dataset reconstructedDataset = new Voxel(bufferInputData.getDimensions()).reconstructFromVoxels
+            //            (blocDim, voxels);
+            //            s.stop();
+            //            IJ.showMessage("Voxel reconstruction time: " + s.getElapsedTimeString());
+            //
+            //            ImageStackHelper.displayDataset(reconstructedDataset, "Voxel reconstructed dataset");
 
         } catch (Exception e) {
             e.printStackTrace();
