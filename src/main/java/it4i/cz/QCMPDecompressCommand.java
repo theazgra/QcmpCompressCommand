@@ -14,6 +14,7 @@ import org.scijava.plugin.Plugin;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import java.io.File;
 import java.util.Optional;
 
 @Plugin(type = Command.class, menuPath = "Compression>QCMP>Decompress", priority = Priority.HIGH_PRIORITY)
@@ -51,7 +52,7 @@ public class QCMPDecompressCommand implements Command {
 
         imageDecompressor.addStatusListener(statusMessage -> DefaultListeners.handleStatusReport(logger, statusMessage));
         imageDecompressor.addProgressListener((message, index, finalIndex) ->
-                DefaultListeners.handleProgressReport(logger, message, index, finalIndex));
+                                                      DefaultListeners.handleProgressReport(logger, message, index, finalIndex));
 
         final Optional<ImageU16Dataset> maybeDecompressedDataset = imageDecompressor.decompressInMemory();
         if (!maybeDecompressedDataset.isPresent()) {
@@ -59,18 +60,6 @@ public class QCMPDecompressCommand implements Command {
             return;
         }
 
-        ImageStackHelper.displayDataset(maybeDecompressedDataset.get(), "Decompressed image dataset");
-        //        final ImagePlus img = NewImage.createShortImage("Decompressed image",
-        //                decompressedDataset.getPlaneDimensions().getX(),
-        //                decompressedDataset.getPlaneDimensions().getY(),
-        //                decompressedDataset.getPlaneCount(),
-        //                ImagePlus.GRAY16);
-        //
-        //        final ImageStack imageStack = img.getImageStack();
-        //        for (int planeIndex = 0; planeIndex < decompressedDataset.getPlaneCount(); planeIndex++) {
-        //            imageStack.setPixels(decompressedDataset.getPlaneData(planeIndex), planeIndex + 1);
-        //        }
-        //
-        //        img.show();
+        ImageStackHelper.displayDataset(maybeDecompressedDataset.get(), new File(filePath).getName());
     }
 }
