@@ -8,12 +8,12 @@
 
 package it4i.cz;
 
-import azgracompress.compression.CompressionOptions;
-import azgracompress.compression.ImageCompressor;
-import azgracompress.data.V3i;
-import azgracompress.fileformat.FileExtensions;
-import azgracompress.io.BufferInputData;
-import azgracompress.io.InputData;
+import cz.it4i.qcmp.compression.CompressionOptions;
+import cz.it4i.qcmp.compression.ImageCompressor;
+import cz.it4i.qcmp.data.V3i;
+import cz.it4i.qcmp.fileformat.FileExtensions;
+import cz.it4i.qcmp.io.BufferInputData;
+import cz.it4i.qcmp.io.InputData;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -47,6 +47,8 @@ public class QCMPCompressCommand implements Command {
         String tmpFile = null;
 
         final ImagePlus currentImage = WindowManager.getCurrentImage();
+        //Returns the dimensions of this image (width, height, nChannels, nSlices, nFrames) as a 5 element int array.
+
         if (currentImage == null) {
             IJ.showMessage("No image is opened.");
             return;
@@ -58,6 +60,9 @@ public class QCMPCompressCommand implements Command {
 
         final int stackSize = currentImage.getImageStackSize();
         final ImageStack imageStack = currentImage.getImageStack();
+
+
+
         assert (currentImage.getNSlices() == stackSize);
         final V3i datasetDims = new V3i(currentImage.getWidth(),
                                         currentImage.getHeight(),
@@ -66,7 +71,7 @@ public class QCMPCompressCommand implements Command {
         final ImageInfo imageInfo = new ImageInfo(currentImage.getTitle(),
                                                   datasetDims.toString(),
                                                   Integer.toString(currentImage.getBitDepth()));
-        CompressionDialog dialog = new CompressionDialog("QCMP compression", imageInfo);
+        final CompressionDialog dialog = new CompressionDialog("QCMP compression", imageInfo);
         if (dialog.exec()) {
 
             final CompressionOptions options = dialog.getChosenOptions();
@@ -92,7 +97,7 @@ public class QCMPCompressCommand implements Command {
                                                          InputData.PixelType.Gray16,
                                                          currentImage.getOriginalFileInfo().fileName));
 
-            ImageCompressor imageCompressor = new ImageCompressor(options);
+            final ImageCompressor imageCompressor = new ImageCompressor(options);
 
             if (options.isVerbose()) {
                 imageCompressor.addStatusListener(statusMessage ->
@@ -121,7 +126,7 @@ public class QCMPCompressCommand implements Command {
     private String getTmpFile() {
         try {
             return File.createTempFile("qcmp_temp_file", FileExtensions.QCMP).getAbsolutePath();
-        } catch (IOException e) {
+        } catch (final IOException e) {
             return null;
         }
     }

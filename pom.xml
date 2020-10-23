@@ -97,6 +97,10 @@
             <id>imagej.public</id>
             <url>http://maven.imagej.net/content/groups/public</url>
         </repository>
+        <repository>
+            <id>cz.it4i</id>
+            <url>https://code.it4i.cz/api/v4/projects/932/packages/maven</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -115,9 +119,9 @@
             <version>2.6</version>
         </dependency>
         <dependency>
-            <groupId>org.azgra</groupId>
-            <artifactId>DataCompressor</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <groupId>cz.it4i</groupId>
+            <artifactId>QcmpCompression</artifactId>
+            <version>0.5-SNAPSHOT</version>
         </dependency>
     </dependencies>
 </project>

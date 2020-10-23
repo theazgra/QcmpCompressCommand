@@ -1,8 +1,8 @@
 package it4i.cz.ui;
 
-import azgracompress.compression.CompressionOptions;
-import azgracompress.data.V3i;
-import azgracompress.fileformat.QuantizationType;
+import cz.it4i.qcmp.compression.CompressionOptions;
+import cz.it4i.qcmp.data.V3i;
+import cz.it4i.qcmp.fileformat.QuantizationType;
 import ij.IJ;
 
 import java.awt.*;
@@ -145,7 +145,7 @@ public class CompressionDialog {
         dialog.setValidator(model -> {
             try {
                 final int vecWidth = Integer.parseInt(((TextField) model.getComponent(KEY_VECTOR_DIM)).getText());
-            } catch (NumberFormatException e) {
+            } catch (final NumberFormatException e) {
                 IJ.showMessage("Invalid vector dimensions.");
                 return false;
             }

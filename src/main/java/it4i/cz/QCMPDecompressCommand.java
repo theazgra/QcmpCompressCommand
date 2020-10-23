@@ -1,10 +1,10 @@
 package it4i.cz;
 
-import azgracompress.compression.CompressionOptions;
-import azgracompress.compression.ImageDecompressor;
-import azgracompress.data.ImageU16Dataset;
-import azgracompress.fileformat.FileExtensions;
-import azgracompress.io.FileInputData;
+import cz.it4i.qcmp.compression.CompressionOptions;
+import cz.it4i.qcmp.compression.ImageDecompressor;
+import cz.it4i.qcmp.data.ImageU16Dataset;
+import cz.it4i.qcmp.fileformat.FileExtensions;
+import cz.it4i.qcmp.io.FileInputData;
 import ij.IJ;
 import org.scijava.Priority;
 import org.scijava.command.Command;
@@ -26,13 +26,13 @@ public class QCMPDecompressCommand implements Command {
     public QCMPDecompressCommand() {
     }
 
-    public QCMPDecompressCommand(LogService logger) {
+    public QCMPDecompressCommand(final LogService logger) {
         this.logger = logger;
     }
 
     @Override
     public void run() {
-        JFileChooser fileOpenDialog = new JFileChooser("D:\\");
+        final JFileChooser fileOpenDialog = new JFileChooser("D:\\");
         fileOpenDialog.setFileSelectionMode(JFileChooser.FILES_ONLY);
         fileOpenDialog.setAcceptAllFileFilterUsed(false);
         fileOpenDialog.setFileFilter(new FileNameExtensionFilter("QCMP files", FileExtensions.QCMP));
@@ -48,7 +48,7 @@ public class QCMPDecompressCommand implements Command {
         decompressionOptions.setOutputFilePath("D:\\tmp\\fiji_decompressed_qcmp.raw");
 
         IJ.showStatus("Decompressing the file...");
-        ImageDecompressor imageDecompressor = new ImageDecompressor(decompressionOptions);
+        final ImageDecompressor imageDecompressor = new ImageDecompressor(decompressionOptions);
 
         imageDecompressor.addStatusListener(statusMessage -> DefaultListeners.handleStatusReport(logger, statusMessage));
         imageDecompressor.addProgressListener((message, index, finalIndex) ->

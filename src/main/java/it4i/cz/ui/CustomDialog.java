@@ -1,6 +1,6 @@
 package it4i.cz.ui;
 
-import azgracompress.fileformat.FileExtensions;
+import cz.it4i.qcmp.fileformat.FileExtensions;
 import ij.IJ;
 import ij.gui.GenericDialog;
 
@@ -25,7 +25,7 @@ public class CustomDialog extends GenericDialog {
     private final HashMap<Integer, Component> componentModel;
     private final HashSet<Component> invalidComponents;
     private final Label warningLabel;
-    private int warningKeySource = 0;
+    private final int warningKeySource = 0;
 
     public CustomDialog(final String dialogTitle) {
         super(dialogTitle);
@@ -74,7 +74,7 @@ public class CustomDialog extends GenericDialog {
         }
     }
 
-    private void addGridComponent(final Component component, int row, int col) {
+    private void addGridComponent(final Component component, final int row, final int col) {
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.gridx = col;
         constraints.gridy = row;
@@ -89,7 +89,7 @@ public class CustomDialog extends GenericDialog {
         currentCol = 0;
     }
 
-    public Component getComponent(int key) {
+    public Component getComponent(final int key) {
         if (key == NO_KEY)
             return null;
         return componentModel.get(key);
@@ -116,8 +116,8 @@ public class CustomDialog extends GenericDialog {
                                     final String defaultValue,
                                     final int componentKey) {
 
-        Label label = new Label(labelText);
-        Choice comboBox = new Choice();
+        final Label label = new Label(labelText);
+        final Choice comboBox = new Choice();
         for (final String option : choices)
             comboBox.addItem(option);
         comboBox.select(defaultValue);
@@ -139,9 +139,9 @@ public class CustomDialog extends GenericDialog {
 
     private boolean isInteger(final String str) {
         try {
-            int tmp = Integer.parseInt(str);
+            final int tmp = Integer.parseInt(str);
             return true;
-        } catch (NumberFormatException x) {
+        } catch (final NumberFormatException x) {
             return false;
         }
     }
@@ -151,7 +151,7 @@ public class CustomDialog extends GenericDialog {
     }
 
     public CustomDialog addCheckBox(final String labelText, final boolean defaultValue, final int componentKey) {
-        Checkbox checkbox = new Checkbox(labelText, defaultValue);
+        final Checkbox checkbox = new Checkbox(labelText, defaultValue);
         addGridComponent(checkbox, currentRow, currentCol);
         advanceToNextRow();
 
@@ -178,10 +178,10 @@ public class CustomDialog extends GenericDialog {
     public CustomDialog addIntegerField(final String labelText,
                                         final int defaultValue,
                                         final int componentKey,
-                                        TextListener customTextListener) {
+                                        final TextListener customTextListener) {
 
-        Label label = new Label(labelText);
-        TextField intInput = new TextField(Integer.toString(defaultValue));
+        final Label label = new Label(labelText);
+        final TextField intInput = new TextField(Integer.toString(defaultValue));
 
         intInput.addTextListener(textAction -> {
             if (!isInteger(intInput.getText())) {
@@ -207,19 +207,19 @@ public class CustomDialog extends GenericDialog {
     }
 
     private JFileChooser getOpenDirectoryDialog(final String title) {
-        JFileChooser directoryChooser = new JFileChooser(JFILE_CHOOSER_DEFAULT_DIR);
+        final JFileChooser directoryChooser = new JFileChooser(JFILE_CHOOSER_DEFAULT_DIR);
         directoryChooser.setDialogTitle(title);
         directoryChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         return directoryChooser;
     }
 
     private JFileChooser getSingleFileDialog(final String title, final String extension) {
-        JFileChooser fileChooser = new JFileChooser(JFILE_CHOOSER_DEFAULT_DIR);
+        final JFileChooser fileChooser = new JFileChooser(JFILE_CHOOSER_DEFAULT_DIR);
         fileChooser.setDialogTitle(title);
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 
         if (extension != null) {
-            FileNameExtensionFilter extFilter = new FileNameExtensionFilter(extension, extension);
+            final FileNameExtensionFilter extFilter = new FileNameExtensionFilter(extension, extension);
             fileChooser.setFileFilter(extFilter);
             fileChooser.setAcceptAllFileFilterUsed(false);
         }
@@ -232,9 +232,9 @@ public class CustomDialog extends GenericDialog {
     }
 
     public CustomDialog addOpenFolderField(final String labelText, final int componentKey) {
-        Label label = new Label(labelText);
-        TextField directoryInput = new TextField();
-        Button openFolderDialogBtn = new Button("Choose folder");
+        final Label label = new Label(labelText);
+        final TextField directoryInput = new TextField();
+        final Button openFolderDialogBtn = new Button("Choose folder");
 
         openFolderDialogBtn.addActionListener(actionEvent -> {
             final JFileChooser dirOpener = getOpenDirectoryDialog(labelText);
@@ -261,9 +261,9 @@ public class CustomDialog extends GenericDialog {
     }
 
     public CustomDialog addSaveFileField(final String labelText, final String extension, final int componentKey) {
-        Label label = new Label(labelText);
-        TextField filePathInput = new TextField();
-        Button saveFileDialogBtn = new Button("Select file");
+        final Label label = new Label(labelText);
+        final TextField filePathInput = new TextField();
+        final Button saveFileDialogBtn = new Button("Select file");
 
         saveFileDialogBtn.addActionListener(actionEvent -> {
             final JFileChooser saveFileDialog = getSingleFileDialog(labelText, extension);
@@ -291,8 +291,8 @@ public class CustomDialog extends GenericDialog {
 
 
     public CustomDialog addInfoField(final String labelText, final String info) {
-        Label label = new Label(labelText);
-        Label infoLabel = new Label(info);
+        final Label label = new Label(labelText);
+        final Label infoLabel = new Label(info);
         infoLabel.setForeground(Color.BLUE);
         addGridComponent(label, currentRow, currentCol++);
         addGridComponent(infoLabel, currentRow, currentCol++);

@@ -1,6 +1,6 @@
 package it4i.cz;
 
-import azgracompress.data.ImageU16Dataset;
+import cz.it4i.qcmp.data.ImageU16Dataset;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.gui.NewImage;

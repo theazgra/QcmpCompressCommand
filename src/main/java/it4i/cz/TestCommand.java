@@ -1,22 +1,20 @@
 package it4i.cz;
 
-import azgracompress.data.V2i;
-import azgracompress.data.V3i;
-import azgracompress.io.BufferInputData;
-import azgracompress.io.InputData;
-import azgracompress.io.loader.IPlaneLoader;
-import azgracompress.io.loader.PlaneLoaderFactory;
-import azgracompress.utilities.Stopwatch;
-import ij.IJ;
-import ij.ImagePlus;
-import ij.ImageStack;
-import ij.WindowManager;
-import it4i.cz.ui.CustomDialog;
+import cz.it4i.qcmp.compression.CompressionOptions;
+import cz.it4i.qcmp.compression.ImageCompressor;
+import cz.it4i.qcmp.data.V3i;
+import cz.it4i.qcmp.fileformat.QuantizationType;
+import cz.it4i.qcmp.io.FileInputData;
+import cz.it4i.qcmp.kdtree.KDTree;
+import cz.it4i.qcmp.kdtree.KDTreeBuilder;
+import cz.it4i.qcmp.utilities.Stopwatch;
 import org.scijava.Priority;
 import org.scijava.command.Command;
 import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+
+import java.util.Arrays;
 
 @Plugin(type = Command.class, menuPath = "Compression>Test", priority = Priority.HIGH_PRIORITY)
 public class TestCommand implements Command {
@@ -26,71 +24,49 @@ public class TestCommand implements Command {
 
     @Override
     public void run() {
-        final int VEC_DIM_KEY = 0;
-        CustomDialog dialog = new CustomDialog("Voxel test").addIntegerField("Vector dimension", 3, VEC_DIM_KEY);
-        if (!dialog.exec()) {
-            return;
+        //DataCompressor.main(new String[]{"-d", "D:\\biology\\tiff_data\\planes100.tif.QCMP"});
+        final CompressionOptions co = new CompressionOptions();
+        co.setQuantizationVector(new V3i(3));
+        co.setCodebookCacheFolder("D:\\biology\\benchmark\\dc_cache_huffman\\");
+        co.setCodebookType(CompressionOptions.CodebookType.Global);
+        co.setQuantizationType(QuantizationType.Vector3D);
+        co.setInputDataInfo(new FileInputData("D:\\biology\\tiff_data\\planes100.raw"));
+        co.getInputDataInfo().setDimension(new V3i(1041, 996, 100));
+        co.setOutputFilePath("D:\\biology\\tiff_data\\planes100.tif.qcmp");
+        co.setVerbose(true);
+        co.setWorkerCount(1);
+
+
+        final ImageCompressor ic = new ImageCompressor(co);
+        ic.compress();
+
+        //        ImageDecompressor id = new ImageDecompressor(co);
+        //        id.decompressToFile();
+    }
+
+    private void testKdTreeBuild(final int[][] vectors, final int bucketSize, final int maxE) {
+        final Stopwatch s = Stopwatch.startNew();
+        final KDTreeBuilder builder = new KDTreeBuilder(vectors[0].length, bucketSize);
+        final KDTree tree = builder.buildTree(vectors);
+        s.stop();
+        logger.info("=================================================================");
+        logger.info("k = : " + vectors[0].length);
+        logger.info("Bucket size: " + bucketSize);
+        logger.info("Total node count: " + tree.getTotalNodeCount());
+        logger.info("Terminal node count: " + tree.getTerminalNodeCount());
+        logger.info("Build time: " + s.getElapsedTimeString());
+        logger.info("MaxE: " + maxE);
+
+        int passed = 0;
+        for (final int[] qVec : vectors) {
+            final int searchResult = tree.findNearestBBF(qVec, maxE);
+            final boolean result = Arrays.equals(qVec, vectors[searchResult]);
+            if (result) {
+                ++passed;
+            }
         }
-        final int vecDim = dialog.getIntegerValue(VEC_DIM_KEY);
+        logger.info(String.format("Vectors matched: %d/%d", passed, vectors.length));
 
-
-        //        DataCompressor.main(new String[]{"-tcb", "-vq", "3x3x3", "-o", "D:\\tmp\\test.qcmp", "D:\\biology\\tiff_data\\planes100
-        //        .tif"});
-
-        final ImagePlus currentImage = WindowManager.getCurrentImage();
-
-        final int stackSize = currentImage.getImageStackSize();
-        final ImageStack imageStack = currentImage.getImageStack();
-        assert (currentImage.getNSlices() == stackSize);
-        final V3i datasetDims = new V3i(currentImage.getWidth(),
-                                        currentImage.getHeight(),
-                                        currentImage.getImageStackSize());
-
-
-        final Object[] pixelBuffers = new Object[stackSize];
-        for (int planeIndex = 0; planeIndex < stackSize; planeIndex++) {
-            final Object planePixelBuffer = imageStack.getPixels(planeIndex + 1);
-            assert (planePixelBuffer != null);
-            pixelBuffers[planeIndex] = planePixelBuffer;
-        }
-        BufferInputData bufferInputData = new BufferInputData(pixelBuffers,
-                                                              datasetDims,
-                                                              InputData.PixelType.Gray16,
-                                                              currentImage.getOriginalFileInfo().fileName);
-        IPlaneLoader loader;
-
-        try {
-            Stopwatch s = Stopwatch.startNew();
-            loader = PlaneLoaderFactory.getPlaneLoaderForInputFile(bufferInputData);
-            final V2i blocDim = new V2i(vecDim);
-            logger.info("Vector dimensions: " + blocDim);
-            final int[][] voxels = loader.loadBlocks(blocDim);
-            s.stop();
-            IJ.showMessage("Block loading time: " + s.getElapsedTimeString());
-            logger.info("Block loading time: " + s.getElapsedTimeString());
-            //            logger.info("continue exec...");
-            //            s.restart();
-            //            ImageU16Dataset reconstructedDataset = new Voxel(bufferInputData.getDimensions()).reconstructFromVoxels
-            //            (blocDim, voxels);
-            //            s.stop();
-            //            IJ.showMessage("Voxel reconstruction time: " + s.getElapsedTimeString());
-            //
-            //            ImageStackHelper.displayDataset(reconstructedDataset, "Voxel reconstructed dataset");
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return;
-        }
-
-
-        //        CompressionOptions co = new CompressionOptions();
-        //        co.setInputDataInfo(bufferInputData);
-        //        co.setOutputFilePath("D:\\tmp\\test.qcmp");
-        //        co.setQuantizationType(QuantizationType.Vector3D);
-        //        co.setQuantizationVector(new V3i(3, 3, 3));
-        //        co.setBitsPerCodebookIndex(4);
-        //        co.setCodebookType(CompressionOptions.CodebookType.Global);
-        //        ImageCompressor ic = new ImageCompressor(co);
-        //        ic.trainAndSaveCodebook();
+        logger.info("=================================================================");
     }
 }
